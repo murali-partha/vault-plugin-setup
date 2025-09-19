@@ -1,0 +1,11 @@
+package_package_upgrade: true
+package_update: true
+
+apt:
+  sources:
+    hashicorp.list:
+      source: "deb [arch=amd64] https://apt.releases.hashicorp.com $RELEASE main"
+      keyid: A621E701
+
+packages:
+  - [vault-enterprise, "${vault_version}"]

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+sudo systemctl enable vault
+sudo systemctl start vault
+
+sleep 5
+
+sudo apt -y install jq
+
+export VAULT_ADDR=http://127.0.0.1:8200
+
+vault operator init -key-shares=1 -key-threshold=1 -format=json > /home/ubuntu/vault-init.json
+
+export UNSEAL_KEY=$(jq -r ".unseal_keys_b64[0]" /home/ubuntu/vault-init.json)
+
+vault operator unseal $UNSEAL_KEY
+
+sleep 5

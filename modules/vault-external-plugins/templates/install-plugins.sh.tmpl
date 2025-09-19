@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Install Plugins on Ubuntu
+
+mkdir /opt/vault/plugins
+
+sudo apt -y install unzip
+
+chown ubuntu:ubuntu /opt/vault/
+chmod 777 /opt/vault/
+
+cd /opt/vault/plugins
+
+export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_TOKEN=$(jq -r ".root_token" /home/ubuntu/vault-init.json)
+
+// Install Aerospike Database Plugin
+
+sudo wget https://github.com/aerospike-community/vault-plugin-database-aerospike/releases/download/v0.2.0/vault-plugin-database-aerospike_0.2.0_linux_386
+mv vault-plugin-database-aerospike_0.2.0_linux_386 vault-plugin-database-aerospike
+chmod +x vault-plugin-database-aerospike
+vault plugin register -sha256=$(sha256sum /opt/vault/plugins/vault-plugin-database-aerospike | awk '{print $1;}') database vault-plugin-database-aerospike
+
+
+// Install JFrog Artifactory Plugin
+
+sudo wget https://github.com/jfrog/vault-plugin-secrets-artifactory/releases/download/v1.8.7/artifactory-secrets-plugin_1.8.7_linux_386
+mv artifactory-secrets-plugin_1.8.7_linux_386 artifactory-secrets-plugin
+chmod +x artifactory-secrets-plugin
+vault plugin register -sha256=$(sha256sum /opt/vault/plugins/artifactory-secrets-plugin | awk '{print $1;}') secret artifactory
+
+
+// Install Couchbase Capella Plugin
+
+sudo wget https://github.com/couchbasecloud/vault-plugin-database-couchbasecapella/releases/download/v1.0.0/vault-plugin-database-couchbasecapella-1.0.0_linux_amd64.zip
+sudo unzip vault-plugin-database-couchbasecapella-1.0.0_linux_amd64.zip
+sudo rm vault-plugin-database-couchbasecapella-1.0.0_linux_amd64.zip
+chmod +x couchbasecapella-database-plugin
+vault write sys/plugins/catalog/database/couchbasecapella-database-plugin sha256=$(sha256sum /opt/vault/plugins/couchbasecapella-database-plugin | awk '{print $1;}') \
+        command=couchbasecapella-database-plugin
+
+
+// Install Couchbase Capella Plugin
+
+sudo wget https://github.com/globalsign/atlas-hashicorp-vault/releases/latest/download/atlas-linux-amd64
+mv atlas-linux-amd64 atlas
+chmod +x atlas
+vault write sys/plugins/catalog/secret/atlas \
+    sha_256=$(sha256sum /opt/vault/plugins/atlas | awk '{print $1;}') command="atlas"
+
+
+// Install Redis Enterprise Plugin
+
+sudo wget https://github.com/RedisLabs/vault-plugin-database-redis-enterprise/releases/download/v0.1.5/vault-plugin-database-redis-enterprise_0.1.5_linux_386
+mv vault-plugin-database-redis-enterprise_0.1.5_linux_386 vault-plugin-database-redis-enterprise
+chmod +x vault-plugin-database-redis-enterprise
+vault write sys/plugins/catalog/database/redisenterprise-database-plugin command=vault-plugin-database-redis-enterpr
+ise sha256=$(sha256sum /opt/vault/plugins/vault-plugin-database-redis-enterprise | awk '{print $1;}')

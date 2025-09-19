@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+mkdir -p /etc/vault.d
+mkdir -p /opt/vault/data
+
+cat << EOF > /etc/vault.d/vault.hcl
+
+ui = true
+cluster_name =  "vault-cluster"
+
+disable_mlock = true
+
+log_level = "${log_level}"
+
+storage "raft" {
+  path = "/opt/vault/data"
+  node_id = "${node_id}"
+}
+
+cluster_addr = "http://${public_ip}:8201"
+api_addr = "http://${public_ip}:8200"
+
+# HTTPS listener
+listener "tcp" {
+  address       = "0.0.0.0:8200"
+  tls_disable   = true
+}
+
+plugin_directory = "/opt/vault/plugins"
+
+EOF
+
+sudo chown -R ubuntu:ubuntu /etc/vault.d
+sudo chmod -R 777 /etc/vault.d/*
+
+sudo chown -R ubuntu:ubuntu /opt/vault
+sudo chmod -R 777 /opt/vault/*
